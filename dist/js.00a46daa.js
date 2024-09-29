@@ -117,25 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"js/model.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getList = exports.addToList = void 0;
-const toDoList = [];
-const addToList = task => {
-  toDoList.push({
-    id: parseInt(Math.random() * 500000),
-    task,
-    priority: 'normal'
-  });
-};
-exports.addToList = addToList;
-const getList = () => toDoList;
-exports.getList = getList;
-},{}],"js/Item.js":[function(require,module,exports) {
+})({"js/Item.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -154,17 +136,64 @@ const Item = (task, priority = 'normal', id) => {
           </div>`;
 };
 var _default = exports.default = Item;
-},{}],"js/view.js":[function(require,module,exports) {
+},{}],"js/model.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.renderList = void 0;
+exports.setPriority = exports.removeItem = exports.getList = exports.getCompletedList = exports.clearCompleted = exports.addtoCompletedList = exports.addToList = void 0;
+var _Item = _interopRequireDefault(require("./Item"));
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+let toDoList = [];
+let completedList = [];
+const addToList = task => {
+  toDoList.push({
+    id: `${parseInt(Math.random() * 500000)}`,
+    task,
+    priority: 'normal'
+  });
+};
+exports.addToList = addToList;
+const setPriority = (id, priority) => {
+  toDoList = toDoList.map(item => {
+    if (item.id === id) {
+      return {
+        ...item,
+        priority
+      };
+    }
+    return item;
+  });
+};
+exports.setPriority = setPriority;
+const removeItem = id => {
+  toDoList = toDoList.filter(el => el.id !== id);
+};
+exports.removeItem = removeItem;
+const addtoCompletedList = id => {
+  completedList.push(toDoList.find(el => el.id === id));
+  toDoList = toDoList.filter(el => el.id !== id);
+};
+exports.addtoCompletedList = addtoCompletedList;
+const clearCompleted = () => completedList = [];
+exports.clearCompleted = clearCompleted;
+const getList = () => toDoList;
+exports.getList = getList;
+const getCompletedList = () => completedList;
+exports.getCompletedList = getCompletedList;
+},{"./Item":"js/Item.js"}],"js/view.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.renderList = exports.renderCompletedList = void 0;
 var _model = require("./model");
 var _Item = _interopRequireDefault(require("./Item"));
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 const toDoList = document.querySelector('.do-list');
+const completedDiv = document.querySelector('.completed');
 const renderList = () => {
   const dom = (0, _model.getList)().map(({
     task,
@@ -176,6 +205,17 @@ const renderList = () => {
   toDoList.innerHTML = dom.join('');
 };
 exports.renderList = renderList;
+const renderCompletedList = () => {
+  const dom = (0, _model.getCompletedList)().map(({
+    task,
+    priority,
+    id
+  }) => {
+    return (0, _Item.default)(task, priority, id);
+  });
+  completedDiv.innerHTML = dom.join('');
+};
+exports.renderCompletedList = renderCompletedList;
 },{"./model":"js/model.js","./Item":"js/Item.js"}],"js/index.js":[function(require,module,exports) {
 "use strict";
 
@@ -183,15 +223,53 @@ var _model = require("./model");
 var _view = require("./view");
 const inputFld = document.querySelector('input[type ="text"]');
 const toDoList = document.querySelector('.do-list');
+const completedDiv = document.querySelector('.completed');
+const clear = document.querySelector('#clear-completed');
 inputFld.addEventListener('keyup', function (evt) {
   evt.preventDefault();
-  if (evt.key === 'Enter') {
+  if (!(this.value === '') && evt.key === 'Enter') {
     //update toDoList
     (0, _model.addToList)(evt.target.value);
     //render toDoList
     (0, _view.renderList)();
     this.value = '';
   }
+});
+toDoList.addEventListener('click', function (evt) {
+  if (evt.target.parentElement.classList.contains('priority-control')) {
+    const priority = evt.target.classList.value;
+    const id = evt.target.parentElement.parentElement.getAttribute('data-id');
+    (0, _model.setPriority)(id, priority);
+    (0, _view.renderList)();
+  }
+  if (evt.target.classList.contains('remove-btn')) {
+    const id = evt.target.parentElement.getAttribute('data-id');
+    const confirm = window.confirm('Are you sure?');
+    if (confirm) {
+      (0, _model.removeItem)(id);
+      (0, _view.renderList)();
+    }
+  }
+});
+toDoList.addEventListener('dragstart', function (evt) {
+  if (evt.target.classList.contains('item')) {
+    const id = evt.target.getAttribute('data-id');
+    evt.dataTransfer.setData('text/plain', id);
+  }
+});
+completedDiv.addEventListener('drop', function (evt) {
+  const id = evt.dataTransfer.getData('text/plain');
+  (0, _model.addtoCompletedList)(id);
+  (0, _view.renderList)();
+  (0, _view.renderCompletedList)();
+});
+clear.addEventListener('click', function (evt) {
+  evt.preventDefault();
+  (0, _model.clearCompleted)();
+  (0, _view.renderCompletedList)();
+});
+completedDiv.addEventListener('dragover', function (evt) {
+  evt.preventDefault();
 });
 },{"./model":"js/model.js","./view":"js/view.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -218,7 +296,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60782" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54262" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

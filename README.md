@@ -1,15 +1,20 @@
 [To-Do List Application]
 
+#Introduction
+
 This project is a basic To-Do List application built using JavaScript ES6 features like events and modules. It allows users to add tasks, remove tasks, mark tasks as completed by dragging them to a completed list, and clear the completed tasks.
 
 [Features]
 
 -Add Tasks: Users can type a task and add it to the list.
+
 -Remove Tasks: Tasks can be removed from the list.
+
 -Drag and Drop: Tasks can be dragged to a separate completed list.
+
 -Clear Completed Tasks: All tasks in the completed list can be cleared with one click.
 
-[How It Works]
+#Working
 
 [Adding Tasks]
 
