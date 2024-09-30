@@ -117,7 +117,91 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"js/Item.js":[function(require,module,exports) {
+})({"js/storage.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.saveToStore = exports.getFromStore = void 0;
+const saveToStore = (toDoList, completedList) => {
+  window.localStorage.setItem('to_Do_List', JSON.stringify(toDoList));
+  window.localStorage.setItem('completed_List', JSON.stringify(completedList));
+};
+exports.saveToStore = saveToStore;
+const getFromStore = () => {
+  const getListStore = window.localStorage.getItem('to_Do_List');
+  const getcompletedListStore = window.localStorage.getItem('completed_List');
+  return {
+    active: getListStore ? JSON.parse(getListStore) : [],
+    completed: getcompletedListStore ? JSON.parse(getcompletedListStore) : []
+  };
+};
+exports.getFromStore = getFromStore;
+},{}],"js/model.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setPriority = exports.removeItem = exports.getList = exports.getCompletedList = exports.clearCompleted = exports.bootUp = exports.addtoCompletedList = exports.addToList = void 0;
+var _storage = require("./storage");
+let toDoList = [];
+let completedList = [];
+const addToList = task => {
+  toDoList.push({
+    id: `${parseInt(Math.random() * 500000)}`,
+    task,
+    priority: 'normal'
+  });
+  (0, _storage.saveToStore)(toDoList, completedList);
+};
+exports.addToList = addToList;
+const setPriority = (id, priority) => {
+  toDoList = toDoList.map(item => {
+    if (item.id === id) {
+      return {
+        ...item,
+        priority
+      };
+    }
+    return item;
+  });
+  (0, _storage.saveToStore)(toDoList, completedList);
+};
+exports.setPriority = setPriority;
+const removeItem = id => {
+  toDoList = toDoList.filter(el => el.id !== id);
+  (0, _storage.saveToStore)(toDoList, completedList);
+};
+exports.removeItem = removeItem;
+const addtoCompletedList = id => {
+  completedList.push(toDoList.find(el => el.id === id));
+  toDoList = toDoList.filter(el => el.id !== id);
+  (0, _storage.saveToStore)(toDoList, completedList);
+};
+exports.addtoCompletedList = addtoCompletedList;
+const clearCompleted = () => {
+  completedList = [];
+  (0, _storage.saveToStore)(toDoList, completedList);
+};
+exports.clearCompleted = clearCompleted;
+const getList = () => toDoList;
+exports.getList = getList;
+const getCompletedList = () => completedList;
+exports.getCompletedList = getCompletedList;
+const bootUp = () => {
+  const {
+    active,
+    completed
+  } = (0, _storage.getFromStore)();
+  console.log(active);
+  console.log(completed);
+  toDoList = active;
+  completedList = completed;
+};
+exports.bootUp = bootUp;
+},{"./storage":"js/storage.js"}],"js/Item.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -136,53 +220,7 @@ const Item = (task, priority = 'normal', id) => {
           </div>`;
 };
 var _default = exports.default = Item;
-},{}],"js/model.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.setPriority = exports.removeItem = exports.getList = exports.getCompletedList = exports.clearCompleted = exports.addtoCompletedList = exports.addToList = void 0;
-var _Item = _interopRequireDefault(require("./Item"));
-function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-let toDoList = [];
-let completedList = [];
-const addToList = task => {
-  toDoList.push({
-    id: `${parseInt(Math.random() * 500000)}`,
-    task,
-    priority: 'normal'
-  });
-};
-exports.addToList = addToList;
-const setPriority = (id, priority) => {
-  toDoList = toDoList.map(item => {
-    if (item.id === id) {
-      return {
-        ...item,
-        priority
-      };
-    }
-    return item;
-  });
-};
-exports.setPriority = setPriority;
-const removeItem = id => {
-  toDoList = toDoList.filter(el => el.id !== id);
-};
-exports.removeItem = removeItem;
-const addtoCompletedList = id => {
-  completedList.push(toDoList.find(el => el.id === id));
-  toDoList = toDoList.filter(el => el.id !== id);
-};
-exports.addtoCompletedList = addtoCompletedList;
-const clearCompleted = () => completedList = [];
-exports.clearCompleted = clearCompleted;
-const getList = () => toDoList;
-exports.getList = getList;
-const getCompletedList = () => completedList;
-exports.getCompletedList = getCompletedList;
-},{"./Item":"js/Item.js"}],"js/view.js":[function(require,module,exports) {
+},{}],"js/view.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -271,6 +309,11 @@ clear.addEventListener('click', function (evt) {
 completedDiv.addEventListener('dragover', function (evt) {
   evt.preventDefault();
 });
+(() => {
+  (0, _model.bootUp)();
+  (0, _view.renderList)();
+  (0, _view.renderCompletedList)();
+})();
 },{"./model":"js/model.js","./view":"js/view.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -296,7 +339,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54262" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57518" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

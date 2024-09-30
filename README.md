@@ -2,9 +2,11 @@
 
 #Introduction
 
-This project is a basic To-Do List application built using JavaScript ES6 features like events and modules. It allows users to add tasks, remove tasks, mark tasks as completed by dragging them to a completed list, and clear the completed tasks.
+This project is a basic To-Do List application built using JavaScript ES6 features like events and modules. It allows users to add tasks, remove tasks, mark tasks as completed by dragging them to a completed list, and clear the completed tasks. It also uses Local storage to store data.
 
 [Features]
+
+-Stores data in localstorage of Web Storage API.
 
 -Add Tasks: Users can type a task and add it to the list.
 

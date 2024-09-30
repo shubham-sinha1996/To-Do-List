@@ -1,4 +1,4 @@
-import { addToList,setPriority,removeItem,addtoCompletedList,clearCompleted } from "./model";
+import { addToList,setPriority,removeItem,addtoCompletedList,clearCompleted,bootUp } from "./model";
 import { renderList,renderCompletedList } from "./view";
 
 const inputFld = document.querySelector('input[type ="text"]');
@@ -48,16 +48,21 @@ completedDiv.addEventListener('drop', function(evt){
     const id = evt.dataTransfer.getData('text/plain');
 
     addtoCompletedList(id);
-
     renderList();
-
     renderCompletedList();
-})
+});
 clear.addEventListener('click',function(evt){
     evt.preventDefault();
     clearCompleted();
     renderCompletedList();
-})
+});
+
 completedDiv.addEventListener('dragover',function(evt){
     evt.preventDefault();
-})
+});
+
+(() => {
+    bootUp();
+    renderList();
+    renderCompletedList();
+})();
